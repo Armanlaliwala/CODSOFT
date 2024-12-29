@@ -7,20 +7,19 @@ def initialize_board():
 
 # Check for winner
 def check_winner(board):
+    # Check rows
     for row in board:
         if len(set(row)) == 1 and row[0] != " ":
             return row[0]
-
+    # Check columns
     for col in board.T:
         if len(set(col)) == 1 and col[0] != " ":
             return col[0]
-
+    # Check diagonals
     if len(set([board[i, i] for i in range(3)])) == 1 and board[0, 0] != " ":
         return board[0, 0]
-
     if len(set([board[i, 2 - i] for i in range(3)])) == 1 and board[0, 2] != " ":
         return board[0, 2]
-
     return None
 
 # Check if the board is full
@@ -86,6 +85,21 @@ def ai_move(board):
 st.title("Tic-Tac-Toe")
 st.write("You are 'O' and the AI is 'X'. Try to beat the AI!")
 
+# Add custom styles for better visuals
+st.markdown(
+    """
+    <style>
+    .stButton>button {
+        height: 50px;
+        width: 50px;
+        font-size: 20px;
+        margin: 5px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Initialize session state variables if they are not already initialized
 if "board" not in st.session_state:
     st.session_state.board = initialize_board()
@@ -124,17 +138,19 @@ def display_board():
 
     # If AI's turn, let it make a move
     if st.session_state.turn == "X" and not st.session_state.game_over:
-        move = ai_move(board)
-        board[move] = "X"
-        winner = check_winner(board)
-        if winner:
-            st.session_state.winner = winner
-            st.session_state.game_over = True
-        elif is_full(board):
-            st.session_state.winner = "Draw"
-            st.session_state.game_over = True
-        else:
-            st.session_state.turn = "O"  # Switch to player's turn
+        with st.spinner("AI is thinking..."):  # Show spinner while AI calculates
+            move = ai_move(board)
+        if move != (-1, -1):  # Safeguard in case no valid move is found
+            board[move] = "X"
+            winner = check_winner(board)
+            if winner:
+                st.session_state.winner = winner
+                st.session_state.game_over = True
+            elif is_full(board):
+                st.session_state.winner = "Draw"
+                st.session_state.game_over = True
+            else:
+                st.session_state.turn = "O"  # Switch to player's turn
 
 display_board()
 
